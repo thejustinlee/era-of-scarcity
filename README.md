@@ -1,5 +1,4 @@
-# era-of-scarcity
-My writings and analysis of the AI inference market, edge AI, and the need for organizations to take an all up approach to their infrastructure and inference strategy.
+# WACT
 # Era of Scarcity
 
 Frameworks and methodologies for enterprise AI infrastructure decisions — inference placement, token economics, and data governance.
