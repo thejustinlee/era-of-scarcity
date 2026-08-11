@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WACT — Weighted Average Cost of Tokens | Era of Scarcity</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #2C3E50;
+    --navy-deep: #1C2B3A;
+    --ember: #D35400;
+    --white: #FFFFFF;
+    --track: #F7F8F9;
+    --border: #E5E7EB;
+    --body: #1A1917;
+    --muted: #6B7280;
+    --muted-light: #9CA3AF;
+    --green: #1E7A34;
+    --green2: #2D8C5A;
+    --amber: #CC6D00;
+    --burnt: #B84A00;
+    --red: #A82020;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--white);
+    color: var(--body);
+    line-height: 1.6;
+  }
+
+  /* ── Top bar ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 0;
+  }
+  .topbar-inner {
+    max-width: 920px; margin: 0 auto; padding: 0 28px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .topbar-brand { display: flex; align-items: center; gap: 8px; }
+  .pip { width: 9px; height: 9px; border-radius: 50%; background: var(--ember); flex-shrink: 0; }
+  .topbar-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--navy); }
+  .topbar-nav { display: flex; gap: 22px; }
+  .topbar-nav a {
+    font-size: 12px; font-weight: 600; color: var(--muted);
+    text-decoration: none; letter-spacing: 0.01em;
+  }
+  .topbar-nav a:hover { color: var(--navy); }
+
+  /* ── Hero ── */
+  .hero {
+    max-width: 920px; margin: 0 auto;
+    padding: 64px 28px 48px;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-eyebrow {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 18px;
+  }
+  .hero-eyebrow span {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--navy);
+  }
+  .hero h1 {
+    font-size: 52px; font-weight: 800; color: var(--navy);
+    line-height: 1.05; letter-spacing: -0.01em; margin-bottom: 6px;
+  }
+  .hero .acronym {
+    font-size: 20px; font-weight: 600; color: var(--ember);
+    margin-bottom: 22px; letter-spacing: 0.01em;
+  }
+  .hero p.lede {
+    font-size: 18px; color: var(--muted); max-width: 680px; line-height: 1.55;
+  }
+  .hero p.lede strong { color: var(--navy); font-weight: 600; }
+
+  /* ── Section shell ── */
+  section {
+    max-width: 920px; margin: 0 auto;
+    padding: 56px 28px;
+    border-bottom: 1px solid var(--border);
+    scroll-margin-top: 70px;
+  }
+  section:last-of-type { border-bottom: none; }
+
+  .section-eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ember); margin-bottom: 10px;
+  }
+  h2 {
+    font-size: 30px; font-weight: 800; color: var(--navy);
+    line-height: 1.15; margin-bottom: 18px; letter-spacing: -0.005em;
+  }
+  h3 {
+    font-size: 18px; font-weight: 700; color: var(--navy);
+    margin: 28px 0 12px; line-height: 1.3;
+  }
+  p { font-size: 15.5px; color: var(--body); margin-bottom: 16px; max-width: 700px; }
+  p.constrained { max-width: 660px; }
+  strong { color: var(--navy); font-weight: 600; }
+  ul.clean { margin: 0 0 16px 0; padding-left: 0; list-style: none; max-width: 680px; }
+  ul.clean li {
+    padding-left: 20px; position: relative; margin-bottom: 9px;
+    font-size: 15px; color: var(--body);
+  }
+  ul.clean li::before {
+    content: '—'; position: absolute; left: 0; color: var(--ember); font-weight: 700;
+  }
+
+  /* ── Problem statement two-column ── */
+  .split-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 28px;
+    margin: 24px 0;
+  }
+  .split-card {
+    background: var(--track); border-radius: 4px;
+    padding: 22px 22px 20px; border-left: 4px solid var(--navy);
+  }
+  .split-card.cost { border-left-color: var(--amber); }
+  .split-card.gov { border-left-color: var(--navy); }
+  .split-card-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+  .split-card.cost .split-card-label { color: var(--amber); }
+  .split-card.gov .split-card-label { color: var(--navy); }
+  .split-card p { font-size: 14px; margin-bottom: 0; color: var(--muted); }
+
+  /* ── WACC analogy table ── */
+  .analogy-table {
+    margin: 20px 0; border: 1px solid var(--border); border-radius: 4px; overflow: hidden;
+  }
+  .analogy-row { display: grid; grid-template-columns: 1fr 1fr; }
+  .analogy-row + .analogy-row { border-top: 1px solid var(--border); }
+  .analogy-cell { padding: 14px 18px; font-size: 14px; }
+  .analogy-cell.wacc { background: var(--track); color: var(--muted); border-right: 1px solid var(--border); }
+  .analogy-cell.wact { background: var(--white); color: var(--body); }
+  .analogy-header .analogy-cell { font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; }
+  .analogy-header .wacc { color: var(--muted); }
+  .analogy-header .wact { color: var(--ember); }
+
+  /* ── Formula blocks ── */
+  .formula-block {
+    background: var(--navy-deep); border-radius: 6px;
+    padding: 28px 32px; margin: 20px 0;
+    overflow-x: auto;
+  }
+  .formula-block .fb-label {
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: rgba(255,255,255,0.45); margin-bottom: 14px;
+  }
+  .formula {
+    font-family: 'Cambria Math', Georgia, serif;
+    font-size: 19px; color: #F2F4F7; line-height: 1.7;
+    white-space: pre;
+  }
+  .formula .var-emp { color: #5BBDD0; }
+  .formula .var-rate { color: #F0A878; }
+  .formula .var-op { color: rgba(255,255,255,0.5); }
+  .formula .frac-line { color: rgba(255,255,255,0.3); }
+
+  .var-key {
+    margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 24px;
+  }
+  .var-key-item { display: flex; gap: 8px; font-size: 13px; }
+  .var-key-item code {
+    font-family: 'Cambria Math', Georgia, serif; color: var(--ember);
+    font-weight: 700; flex-shrink: 0; min-width: 70px;
+  }
+  .var-key-item span { color: var(--muted); }
+
+  /* ── Tier reference table ── */
+  .tier-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13.5px; }
+  .tier-table th {
+    text-align: left; padding: 10px 14px; background: var(--navy);
+    color: white; font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .tier-table td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .tier-table tr:last-child td { border-bottom: none; }
+  .tier-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 50%; color: white;
+    font-size: 11px; font-weight: 800; margin-right: 8px;
+  }
+  .tn1 { background: var(--green); } .tn2 { background: var(--green2); }
+  .tn3 { background: var(--amber); } .tn4 { background: var(--burnt); } .tn5 { background: var(--red); }
+  .tier-table .tname { font-weight: 700; color: var(--navy); }
+  .tier-table .mono { font-family: 'Cambria Math', Georgia, serif; color: var(--muted); }
+
+  /* ── CapEx callout ── */
+  .callout {
+    background: rgba(211,84,0,0.05); border: 1px solid rgba(211,84,0,0.18);
+    border-radius: 4px; padding: 20px 24px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ember); margin-bottom: 8px;
+  }
+  .callout p { font-size: 14.5px; margin-bottom: 0; color: var(--body); }
+
+  .input-table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14px; }
+  .input-table td { padding: 9px 16px 9px 0; border-bottom: 1px solid var(--border); }
+  .input-table td:first-child { color: var(--muted); width: 50%; }
+  .input-table td:last-child { color: var(--navy); font-weight: 700; text-align: right; }
+
+  /* ── Worked example ── */
+  .example-shell {
+    background: var(--track); border-radius: 6px; padding: 28px 30px; margin: 20px 0;
+  }
+  .example-step {
+    display: flex; gap: 16px; margin-bottom: 18px; align-items: flex-start;
+  }
+  .example-step:last-child { margin-bottom: 0; }
+  .step-num {
+    width: 26px; height: 26px; border-radius: 50%; background: var(--navy);
+    color: white; font-size: 12px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .step-text { flex: 1; }
+  .step-text .step-title { font-weight: 700; color: var(--navy); font-size: 14.5px; margin-bottom: 4px; }
+  .step-text p { font-size: 14px; margin-bottom: 0; color: var(--muted); }
+  .step-text .step-math {
+    font-family: 'Cambria Math', Georgia, serif; color: var(--navy);
+    font-size: 14px; margin-top: 4px; background: white; padding: 8px 12px;
+    border-radius: 3px; border: 1px solid var(--border); display: inline-block;
+  }
+
+  .result-banner {
+    background: var(--navy); color: white; border-radius: 4px;
+    padding: 18px 24px; margin-top: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .result-label { font-size: 12px; font-weight: 600; letter-spacing: 0.02em; opacity: 0.75; }
+  .result-value { font-size: 26px; font-weight: 800; }
+
+  /* ── Assumptions ── */
+  .assumption-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+  .assumption-item {
+    padding: 14px 16px; background: var(--track); border-radius: 4px;
+    border-left: 3px solid var(--muted-light);
+  }
+  .assumption-item .a-q { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .assumption-item .a-a { font-size: 13px; color: var(--muted); }
+
+  /* ── CTA / footer ── */
+  .cta-section { text-align: center; padding: 56px 28px; }
+  .cta-section h2 { text-align: center; }
+  .cta-section p { margin: 0 auto 24px; text-align: center; }
+  .cta-button {
+    display: inline-block; background: var(--ember); color: white;
+    font-size: 14px; font-weight: 700; padding: 13px 28px;
+    border-radius: 4px; text-decoration: none; letter-spacing: 0.01em;
+  }
+  .cta-note { font-size: 12.5px; color: var(--muted-light); margin-top: 14px; }
+
+  footer {
+    max-width: 920px; margin: 0 auto; padding: 32px 28px 48px;
+    display: flex; justify-content: space-between; align-items: flex-end;
+    border-top: 1px solid var(--border);
+  }
+  .footer-note { font-size: 11.5px; color: var(--muted-light); max-width: 600px; line-height: 1.5; }
+  .footer-author { font-size: 13px; font-weight: 700; color: var(--navy); white-space: nowrap; }
+
+  @media (max-width: 680px) {
+    .hero h1 { font-size: 36px; }
+    .split-row, .assumption-grid { grid-template-columns: 1fr; }
+    .analogy-row { grid-template-columns: 1fr; }
+    .analogy-cell.wacc { border-right: none; border-bottom: 1px solid var(--border); }
+    .topbar-nav { display: none; }
+    .var-key { grid-template-columns: 1fr; }
+    .formula { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-brand">
+        <div class="pip"></div>
+        <span class="topbar-label">Era of Scarcity · Methodology</span>
+      </div>
+      <nav class="topbar-nav">
+        <a href="#problem">The Problem</a>
+        <a href="#formula">The Formula</a>
+        <a href="#tiers">Tier Model</a>
+        <a href="#example">Worked Example</a>
+        <a href="#pricing">Rates</a>
+        <a href="#assumptions">Assumptions</a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-eyebrow">
+      <div class="pip"></div>
+      <span>Financial Methodology</span>
+    </div>
+    <h1>WACT</h1>
+    <div class="acronym">Weighted Average Cost of Tokens</div>
+    <p class="lede">A method for calculating true enterprise AI inference cost — weighted by <strong>workforce distribution across data classification tiers</strong>, not a flat per-seat assumption. Adapted from the logic of Weighted Average Cost of Capital.</p>
+  </div>
+
+  <!-- Problem -->
+  <section id="problem">
+    <div class="section-eyebrow">01 — The Problem</div>
+    <h2>Cost and governance are treated as separate decisions</h2>
+    <p class="constrained">Most enterprise AI strategy conversations split into two unconnected tracks. One team optimizes for token cost. Another team governs where data is allowed to go. They rarely model the same number.</p>
+
+    <div class="split-row">
+      <div class="split-card cost">
+        <div class="split-card-label">Cost Lens</div>
+        <p>What does inference cost at scale? Token pricing, model selection, volume — modeled in isolation from data sensitivity.</p>
+      </div>
+      <div class="split-card gov">
+        <div class="split-card-label">Governance Lens</div>
+        <p>Where is data permitted to go? Classification tiers, custody requirements, regulatory exposure — modeled without a cost output.</p>
+      </div>
+    </div>
+
+    <p class="constrained">WACT exists to collapse these into one number. Your data classification policy already determines which model tier and which deployment architecture each segment of your workforce is permitted to use. That constraint has a cost. WACT calculates it.</p>
+  </section>
+
+  <!-- WACC Analogy -->
+  <section id="analogy">
+    <div class="section-eyebrow">02 — The Analogy</div>
+    <h2>Borrowed logic from capital structure</h2>
+    <p class="constrained">Weighted Average Cost of Capital blends the cost of equity and debt, weighted by their proportion of total capital. WACT applies the same blending logic to inference cost — but the weights are workforce headcount by data tier, and the "capital sources" are OpEx (API pricing) and CapEx (owned infrastructure).</p>
+
+    <div class="analogy-table">
+      <div class="analogy-row analogy-header">
+        <div class="analogy-cell wacc">WACC (Capital Structure)</div>
+        <div class="analogy-cell wact">WACT (Token Economics)</div>
+      </div>
+      <div class="analogy-row">
+        <div class="analogy-cell wacc">Cost of Equity</div>
+        <div class="analogy-cell wact">OpEx token rate (hyperscale API pricing)</div>
+      </div>
+      <div class="analogy-row">
+        <div class="analogy-cell wacc">Cost of Debt</div>
+        <div class="analogy-cell wact">CapEx-amortized rate (owned private/edge hardware)</div>
+      </div>
+      <div class="analogy-row">
+        <div class="analogy-cell wacc">Weight = proportion of capital structure</div>
+        <div class="analogy-cell wact">Weight = proportion of workforce in each data tier</div>
+      </div>
+      <div class="analogy-row">
+        <div class="analogy-cell wacc">Tax shield on debt interest</div>
+        <div class="analogy-cell wact">Depreciation shield on hardware CapEx (Section 179 / bonus depreciation)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Formula -->
+  <section id="formula">
+    <div class="section-eyebrow">03 — The Formula</div>
+    <h2>Built in two steps</h2>
+    <p class="constrained">First, calculate the weighted token cost within each classification tier. Then sum across all five tiers and divide by total headcount.</p>
+
+    <h3>Step 1 — Per-Tier Cost</h3>
+    <div class="formula-block">
+      <div class="fb-label">Per Tier (n)</div>
+      <div class="formula"><span class="var-op">Tier</span><sub>n</sub><span class="var-op">_Cost = (</span><span class="var-rate">input_ratio × input_rate</span><span class="var-op"> + </span><span class="var-rate">output_ratio × output_rate</span><span class="var-op">)</span>
+<span class="var-op">             × </span><span class="var-emp">tokens_per_employee</span><span class="var-op"> × </span><span class="var-emp">tier_employees</span></div>
+    </div>
+
+    <h3>Step 2 — Enterprise WACT</h3>
+    <div class="formula-block">
+      <div class="fb-label">Full Enterprise Weighted Average</div>
+      <div class="formula">          <span class="var-op">T1_Cost + T2_Cost + T3_Cost + T4_Cost + T5_Cost</span>
+<span class="frac-line">WACT  =  ──────────────────────────────────────────────────</span>
+                          <span class="var-emp">total_employees</span></div>
+      <div class="var-key">
+        <div class="var-key-item"><code>T_n_emp</code><span>Headcount operating within that classification tier</span></div>
+        <div class="var-key-item"><code>input_rate</code><span>Per-1M-token input cost for that tier's permitted model</span></div>
+        <div class="var-key-item"><code>output_rate</code><span>Per-1M-token output cost for that tier's permitted model</span></div>
+        <div class="var-key-item"><code>tokens</code><span>Assumed monthly token volume per employee</span></div>
+        <div class="var-key-item"><code>ratio</code><span>Input/output split — varies by workload archetype per tier</span></div>
+        <div class="var-key-item"><code>T4/T5 rate</code><span>CapEx-amortized rate replaces API rate — see Section 05</span></div>
+      </div>
+    </div>
+
+    <p class="constrained">The output is <strong>cost per 1M tokens, per employee, weighted across the full enterprise</strong> — not a vendor benchmark, and not a flat assumption. It reflects your organization's actual data tier distribution.</p>
+  </section>
+
+  <!-- Tier Model -->
+  <section id="tiers">
+    <div class="section-eyebrow">04 — The Tier Model</div>
+    <h2>Token ratio and deployment by classification</h2>
+    <p class="constrained">Each tier carries a distinct input/output ratio, reflecting how that workforce segment actually uses inference — and a distinct deployment constraint, reflecting what's legally and contractually permissible.</p>
+
+    <table class="tier-table">
+      <tr>
+        <th>Tier</th><th>Ratio (in/out)</th><th>Workload Character</th><th>Rate Basis</th>
+      </tr>
+      <tr>
+        <td><span class="tier-num tn1">1</span><span class="tname">Public</span></td>
+        <td class="mono">30 / 70</td>
+        <td>General queries, no context depth</td>
+        <td>OpEx — any provider</td>
+      </tr>
+      <tr>
+        <td><span class="tier-num tn2">2</span><span class="tname">Internal</span></td>
+        <td class="mono">30 / 70</td>
+        <td>Operational comms, lightweight outputs</td>
+        <td>OpEx — any provider</td>
+      </tr>
+      <tr>
+        <td><span class="tier-num tn3">3</span><span class="tname">Confidential</span></td>
+        <td class="mono">30 / 70</td>
+        <td>Knowledge work — generates assets, deliverables</td>
+        <td>OpEx (conditional cloud) or CapEx (private/edge)</td>
+      </tr>
+      <tr>
+        <td><span class="tier-num tn4">4</span><span class="tname">Restricted</span></td>
+        <td class="mono">50 / 50</td>
+        <td>Agent / automation — SaaS tool orchestration</td>
+        <td>CapEx only — open-weight models</td>
+      </tr>
+      <tr>
+        <td><span class="tier-num tn5">5</span><span class="tname">Strictly Confidential</span></td>
+        <td class="mono">70 / 30</td>
+        <td>RAG-heavy — contracts, patents, code repos</td>
+        <td>CapEx only — open-weight models</td>
+      </tr>
+    </table>
+
+    <div class="callout">
+      <div class="callout-label">Why T4 and T5 use a different rate basis</div>
+      <p>Frontier closed-weight models — Claude, GPT-5, Gemini — are not self-hostable. They exist only as a hosted API. At Tiers 4 and 5, hyperscale cloud is not a permissible deployment regardless of contract terms, which means the only available models are open-weight (Llama, Mistral, and comparable architectures) running on infrastructure your organization owns. The cost structure shifts entirely from per-token OpEx to amortized CapEx.</p>
+    </div>
+  </section>
+
+  <!-- CapEx Methodology -->
+  <section id="capex">
+    <div class="section-eyebrow">05 — CapEx Methodology</div>
+    <h2>Pricing inference where there is no API rate</h2>
+    <p class="constrained">For Tier 4 and Tier 5, the per-token rate is derived from hardware acquisition cost, amortized over useful life and effective throughput — not quoted from a vendor pricing page.</p>
+
+    <h3>Formula</h3>
+    <div class="formula-block">
+      <div class="fb-label">CapEx Rate per Token</div>
+      <div class="formula">                    <span class="var-emp">Hardware_Cost</span>
+<span class="var-op">CapEx_Rate  =  ─────────────────────────────────────────────</span>
+               <span class="var-rate">Useful_Life_sec × Utilization_Rate × Throughput</span></div>
+    </div>
+
+    <h3>Reference Inputs</h3>
+    <table class="input-table">
+      <tr><td>NVIDIA H100 — per unit</td><td>~$30,000</td></tr>
+      <tr><td>H100 cluster — minimum viable (8-GPU)</td><td>~$240,000</td></tr>
+      <tr><td>Useful life (conservative)</td><td>2–3 years</td></tr>
+      <tr><td>Enterprise utilization rate (typical)</td><td>40–60%</td></tr>
+      <tr><td>Throughput — 70B model, FP8, per GPU</td><td>~2,000–3,000 tok/sec</td></tr>
+    </table>
+
+    <div class="callout">
+      <div class="callout-label">The depreciation shield</div>
+      <p>Section 179 and bonus depreciation allow qualifying hardware to be expensed immediately in Year 1 under current U.S. tax law. This materially lowers the effective cost of CapEx deployment relative to its sticker price — the same way a tax-deductible debt shield lowers the effective cost of debt in WACC. For a multi-year cloud OpEx commitment versus a depreciable hardware purchase, this shield changes which option is actually cheaper on a net present value basis.</p>
+    </div>
+  </section>
+
+  <!-- Worked Example -->
+  <section id="example">
+    <div class="section-eyebrow">06 — Worked Example</div>
+    <h2>A 10,000-employee organization</h2>
+    <p class="constrained">Illustrative only. Workforce distribution, token volume, and hardware utilization vary by organization — this walks the mechanics, not a universal benchmark.</p>
+
+    <div class="example-shell">
+      <div class="example-step">
+        <div class="step-num">1</div>
+        <div class="step-text">
+          <div class="step-title">Establish workforce distribution by tier</div>
+          <p>Assume a financial services profile: 30% T1/T2, 55% T3, 10% T4, 5% T5.</p>
+          <div class="step-math">3,000 / 5,500 / 1,000 / 500 employees</div>
+        </div>
+      </div>
+      <div class="example-step">
+        <div class="step-num">2</div>
+        <div class="step-text">
+          <div class="step-title">Apply token volume assumption</div>
+          <p>500,000 tokens per employee per month across all tiers.</p>
+        </div>
+      </div>
+      <div class="example-step">
+        <div class="step-num">3</div>
+        <div class="step-text">
+          <div class="step-title">Calculate T3 cost — the largest segment</div>
+          <p>5,500 employees, 30/70 ratio, Claude Sonnet 4.6 rates ($3 / $15 per 1M) — blended rate $11.40/1M tokens.</p>
+          <div class="step-math">5,500 × 500,000 tokens × $11.40 / 1M ≈ $31,350 / mo</div>
+        </div>
+      </div>
+      <div class="example-step">
+        <div class="step-num">4</div>
+        <div class="step-text">
+          <div class="step-title">Calculate T4/T5 cost — CapEx basis</div>
+          <p>1,500 employees combined. An 8-GPU H100 cluster ($240K, 2.5-year life, 50% utilization, ~20,000 tok/sec) amortizes to roughly $0.30/1M tokens — a fraction of OpEx pricing once hardware is owned and utilized.</p>
+          <div class="step-math">1,500 employees × 500,000 tokens × $0.30 / 1M ≈ $228 / mo combined</div>
+        </div>
+      </div>
+      <div class="example-step">
+        <div class="step-num">5</div>
+        <div class="step-text">
+          <div class="step-title">Sum total cost, divide by total tokens</div>
+          <p>Total monthly cost across all tiers (~$37,300) divided by total monthly tokens (5,000M) produces the enterprise WACT. A law firm or biotech with a heavier T4/T5 population will produce a materially lower figure — more of the workforce sits on near-zero CapEx-amortized cost instead of OpEx pricing.</p>
+        </div>
+      </div>
+
+      <div class="result-banner">
+        <span class="result-label">Illustrative Enterprise WACT</span>
+        <span class="result-value">$7.46 / 1M tokens</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Reference -->
+  <section id="pricing">
+    <div class="section-eyebrow">07 — Rate Reference</div>
+    <h2>Current frontier model pricing</h2>
+    <p class="constrained">Published API rates per 1M tokens, verified 10 August 2026. These are the OpEx inputs for Tiers 1 through 3. Tiers 4 and 5 do not use these rates — no frontier closed-weight model is self-hostable, so those tiers price from the CapEx model in Section 05.</p>
+
+    <table class="tier-table">
+      <tr>
+        <th>Provider</th><th>Model</th><th>Input / 1M</th><th>Output / 1M</th><th>Blended @ 30/70</th>
+      </tr>
+      <tr>
+        <td><span class="tname">Anthropic</span></td>
+        <td>Claude Haiku 4.5</td>
+        <td class="mono">$1.00</td><td class="mono">$5.00</td>
+        <td class="mono">$3.80</td>
+      </tr>
+      <tr>
+        <td><span class="tname">Anthropic</span></td>
+        <td>Claude Sonnet 4.6</td>
+        <td class="mono">$3.00</td><td class="mono">$15.00</td>
+        <td class="mono">$11.40</td>
+      </tr>
+      <tr>
+        <td><span class="tname">Anthropic</span></td>
+        <td>Claude Opus 4.8</td>
+        <td class="mono">$5.00</td><td class="mono">$25.00</td>
+        <td class="mono">$19.00</td>
+      </tr>
+      <tr>
+        <td><span class="tname">OpenAI</span></td>
+        <td>GPT-5 Mini</td>
+        <td class="mono">$0.125</td><td class="mono">$1.00</td>
+        <td class="mono">$0.74</td>
+      </tr>
+      <tr>
+        <td><span class="tname">OpenAI</span></td>
+        <td>GPT-5</td>
+        <td class="mono">$0.625</td><td class="mono">$5.00</td>
+        <td class="mono">$3.69</td>
+      </tr>
+      <tr>
+        <td><span class="tname">Google</span></td>
+        <td>Gemini 3 Pro</td>
+        <td class="mono">$2.00</td><td class="mono">$12.00</td>
+        <td class="mono">$9.00</td>
+      </tr>
+    </table>
+
+    <div class="callout">
+      <div class="callout-label">Rates move — the methodology does not</div>
+      <p>OpenAI reduced GPT-5 and GPT-5 Mini input pricing by roughly 50% between April and August 2026. Anthropic and Google rates held flat over the same period. This is why WACT is expressed as a formula rather than a fixed figure: the blended rate column is an input you refresh, not a constant. Batch processing (50% discount) and prompt caching (up to 90% off cached input) reduce effective rates further and should be modeled separately where applicable.</p>
+    </div>
+  </section>
+
+  <!-- Assumptions -->
+  <section id="assumptions">
+    <div class="section-eyebrow">08 — Assumptions &amp; Limitations</div>
+    <h2>Where this methodology needs your inputs</h2>
+    <p class="constrained">WACT is a framework, not a fixed answer. The figures above are illustrative. An accurate WACT for your organization requires your own data.</p>
+
+    <div class="assumption-grid">
+      <div class="assumption-item">
+        <div class="a-q">Workforce distribution</div>
+        <div class="a-a">Varies significantly by industry — retail skews T1/T2, law and biotech skew T4/T5.</div>
+      </div>
+      <div class="assumption-item">
+        <div class="a-q">Token volume per employee</div>
+        <div class="a-a">500K/month is a mid-range planning assumption, not a measured figure. AI copilot maturity changes this quickly.</div>
+      </div>
+      <div class="assumption-item">
+        <div class="a-q">Token ratio by tier</div>
+        <div class="a-a">30/70, 50/50, 70/30 reflect typical workload archetypes — Practitioner, Orchestrator, Researcher — not a universal law.</div>
+      </div>
+      <div class="assumption-item">
+        <div class="a-q">Hardware utilization</div>
+        <div class="a-a">The single most sensitive input in the CapEx model. Low utilization erases the cost advantage of owned infrastructure entirely.</div>
+      </div>
+      <div class="assumption-item">
+        <div class="a-q">Tax treatment</div>
+        <div class="a-a">Depreciation shield assumes a tax-paying U.S. entity at standard corporate rates. International and non-profit structures differ.</div>
+      </div>
+      <div class="assumption-item">
+        <div class="a-q">Model pricing</div>
+        <div class="a-a">OpEx rates reflect publicly posted API pricing as of the publish date and are subject to change without notice.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section" id="calculator">
+    <div class="section-eyebrow" style="text-align:center;">09 — Run Your Own Numbers</div>
+    <h2>Interactive WACT Calculator</h2>
+    <p class="constrained">Input your own workforce distribution, token volume, and hardware assumptions to generate an organization-specific WACT figure.</p>
+    <a href="#" class="cta-button">Calculator — Coming Soon</a>
+    <div class="cta-note">This page will be updated with a live link when the calculator publishes.</div>
+  </section>
+
+  <footer>
+    <div class="footer-note">WACT is an original methodology developed as part of the Era of Scarcity series. Pricing references reflect publicly posted API rates from Anthropic, OpenAI, and Google, verified 10 August 2026. Hardware cost references reflect publicly available NVIDIA H100 pricing. This is a financial planning framework, not tax or legal advice — consult qualified counsel before applying depreciation treatment to your organization.</div>
+    <div class="footer-author">Justin Lee · Enterprise AI &amp; Compute</div>
+  </footer>
+
+</body>
+</html>
